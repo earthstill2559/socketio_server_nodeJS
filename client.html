@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.IO Client</title>
+  <script src="http://192.168.1.177:3000/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <h1>Socket.IO Client</h1>
+  
+  <input type="text" id="messageInput" placeholder="Type your message here..." />
+  <button id="sendMessageBtn">Send Message</button>
+
+  <div id="messageLog"></div> <!-- แสดงข้อความที่ส่งและตอบกลับจาก server -->
+
+  <script>
+    const socket = io('http://192.168.1.177:3000');  // ใช้ IP ของเซิร์ฟเวอร์ที่นี่
+  
+    socket.on('connect', () => {
+      console.log('Connected to the server! BY Nopp');
+    });
+        socket.on('messageHistory', (messageData) => {
+          const messageLog = document.getElementById('messageLog');
+          messageLog.innerHTML += `<p><strong>${messageData.sender}:</strong> ${messageData.message} <em>${new Date(messageData.timestamp).toLocaleString()}</em></p>`;
+        });
+  
+        socket.on('receiveMessage', (msg) => {
+          console.log('Response from server: ' + msg);
+          const messageLog = document.getElementById('messageLog');
+          messageLog.innerHTML += `<p class="server-message">${msg}</p>`;
+        });
+  
+        socket.on('broadcastMessage', (msg) => {
+          console.log('Broadcast from server:', msg);
+          const messageLog = document.getElementById('messageLog');
+          messageLog.innerHTML += `<p class="broadcast-message">${msg}</p>`;
+        });
+  
+        document.getElementById('sendMessageBtn').addEventListener('click', () => {
+          const message = document.getElementById('messageInput').value;
+          if (message) {
+            console.log('Client sending message: ' + message);
+            const messageLog = document.getElementById('messageLog');
+            messageLog.innerHTML += `<p class="my-message">You: ${message}</p>`;
+            socket.emit('sendMessage', message);
+            document.getElementById('messageInput').value = '';
+          }
+        });
+  
+    document.getElementById('messageInput').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        document.getElementById('sendMessageBtn').click();
+      }
+    });
+  </script>
+  
